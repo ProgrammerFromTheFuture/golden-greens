@@ -1,45 +1,58 @@
+// cart.js for Golden Greens Shopping Cart
+
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
 function addToCart(name, price) {
-  const existingItem = cart.find(item => item.name === name);
-  if (existingItem) {
-    existingItem.qty += 1;
+  const item = cart.find(product => product.name === name);
+  if (item) {
+    item.quantity += 1;
   } else {
-    cart.push({ name, price, qty: 1 });
+    cart.push({ name, price, quantity: 1 });
   }
   localStorage.setItem('cart', JSON.stringify(cart));
   alert(`${name} added to cart!`);
+  updateCartCount();
 }
 
-function renderCart() {
-  const cartContainer = document.getElementById('cart-items');
-  const totalContainer = document.getElementById('cart-total');
-  if (!cartContainer) return;
+function updateCartCount() {
+  const cartIcon = document.getElementById('cart-count');
+  const count = cart.reduce((total, item) => total + item.quantity, 0);
+  if (cartIcon) {
+    cartIcon.textContent = count;
+  }
+}
 
-  cartContainer.innerHTML = '';
+function displayCartItems() {
+  const cartList = document.getElementById('cart-items');
+  const totalAmount = document.getElementById('total-amount');
+
+  if (!cartList || !totalAmount) return;
+
+  cartList.innerHTML = '';
+
   let total = 0;
-
   cart.forEach(item => {
-    const itemDiv = document.createElement('div');
-    itemDiv.className = 'cart-item';
-    itemDiv.innerHTML = `
-      <h4>${item.name}</h4>
-      <p>Qty: ${item.qty}</p>
-      <p>R${(item.price * item.qty).toFixed(2)}</p>
-    `;
-    cartContainer.appendChild(itemDiv);
-    total += item.price * item.qty;
+    const li = document.createElement('li');
+    li.textContent = `${item.name} x ${item.quantity} - R${(item.price * item.quantity).toFixed(2)}`;
+    cartList.appendChild(li);
+    total += item.price * item.quantity;
   });
 
-  totalContainer.textContent = `Total: R${total.toFixed(2)}`;
+  totalAmount.textContent = `Total: R${total.toFixed(2)}`;
 }
 
 function clearCart() {
   cart = [];
-  localStorage.removeItem('cart');
-  alert('Order placed successfully!');
-  window.location.href = 'index.html';
+  localStorage.setItem('cart', JSON.stringify(cart));
+  displayCartItems();
+  updateCartCount();
+  alert('Cart cleared!');
 }
 
-window.onload = renderCart;
-
+// Call on page load if needed
+document.addEventListener('DOMContentLoaded', () => {
+  updateCartCount();
+  if (document.getElementById('cart-items')) {
+    displayCartItems();
+  }
+});
